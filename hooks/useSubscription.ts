@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { server } from '../shared/contracts'
-import * as SorobanClient from 'soroban-client'
-let xdr = SorobanClient.xdr
+import { xdr, SorobanRpc } from '@stellar/stellar-sdk'
 
 /**
  * Concatenated `${contractId}:${topic}`
@@ -14,9 +13,12 @@ type PagingKey = string
  */
 const paging: Record<PagingKey, { lastLedgerStart?: number, pagingToken?: string }> = {}
 
+// `EventResponse` is not exported from stellar-sdk
+type EventResponse = SorobanRpc.Api.GetEventsResponse['events'][number]
+
 /**
  * Subscribe to events for a given topic from a given contract, using a library
- * generated with `soroban contract bindings typescript`.
+ * generated with `stellar contract bindings typescript`.
  *
  * Someday such generated libraries will include functions for subscribing to
  * the events the contract emits, but for now you can copy this hook into your
@@ -26,14 +28,14 @@ const paging: Record<PagingKey, { lastLedgerStart?: number, pagingToken?: string
 export function useSubscription(
   contractId: string,
   topic: string,
-  onEvent: (event: SorobanClient.SorobanRpc.EventResponse) => void,
+  onEvent: (event: EventResponse) => void,
   pollInterval = 5000
 ) {
   const id = `${contractId}:${topic}`
   paging[id] = paging[id] || {}
 
   React.useEffect(() => {
-    let timeoutId: NodeJS.Timer | null = null
+    let timeoutId: NodeJS.Timeout | null = null
     let stop = false
 
     async function pollEvents(): Promise<void> {
@@ -62,9 +64,9 @@ export function useSubscription(
      
         paging[id].pagingToken = undefined;
         if (response.latestLedger) {
-          paging[id].lastLedgerStart = parseInt(response.latestLedger);
+          paging[id].lastLedgerStart = response.latestLedger;
         }
-        response.events && response.events.forEach(event => {
+        response.events && response.events.forEach((event: EventResponse) => {
           try {
             onEvent(event)
           } catch (error) {
