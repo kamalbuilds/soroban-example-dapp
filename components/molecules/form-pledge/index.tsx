@@ -4,9 +4,9 @@ import { TransactionModal } from '../../molecules/transaction-modal'
 import { Utils } from '../../../shared/utils'
 import styles from './style.module.css'
 import { Spacer } from '../../atoms/spacer'
-import { abundance, crowdfund } from '../../../shared/contracts'
+import { abundance, crowdfund, server } from '../../../shared/contracts'
 import { signTransaction } from '@stellar/freighter-api'
-import { BASE_FEE, xdr } from '@stellar/stellar-sdk'
+import { BASE_FEE, TransactionBuilder, xdr } from '@stellar/stellar-sdk'
 
 export interface IFormPledgeProps {
   account: string
@@ -47,8 +47,16 @@ function MintButton({
       title={`Mint ${displayAmount} ${symbol}`}
       onClick={async () => {
         setSubmitting(true)
-        const tx = await abundance.mint({ to: account, amount: amount })
-        await tx.signAndSend()
+        const tx = await abundance.mint({ to: account, amount: amount });
+        const signedXdr = await signTransaction(tx.toXDR(), {
+          network: 'TESTNET',
+          networkPassphrase: tx.raw.networkPassphrase,
+        });
+        let signed_tx = TransactionBuilder.fromXDR(
+          signedXdr,
+          tx.raw.networkPassphrase
+        );
+        const txRes = await server.sendTransaction(signed_tx);
         setSubmitting(false)
         onComplete()
       }}
