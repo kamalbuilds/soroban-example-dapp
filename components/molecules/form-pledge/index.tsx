@@ -50,11 +50,10 @@ function MintButton({
         const tx = await abundance.mint({ to: account, amount: amount });
         const signedXdr = await signTransaction(tx.toXDR(), {
           network: 'TESTNET',
-          networkPassphrase: tx.raw.networkPassphrase,
         });
         let signed_tx = TransactionBuilder.fromXDR(
           signedXdr,
-          tx.raw.networkPassphrase
+          "Test SDF Network ; September 2015"
         );
         const txRes = await server.sendTransaction(signed_tx);
         setSubmitting(false)
