@@ -6,7 +6,6 @@ on:
   pull_request:
 
 jobs:
-
   complete:
     if: always()
     needs: [build-and-test]
@@ -24,7 +23,6 @@ jobs:
       - run: rustup target add wasm32-unknown-unknown
       - run: cargo install --locked stellar-cli --features opt
 
-
       - run: make build
 
       # Setup Node.js with caching
@@ -32,6 +30,17 @@ jobs:
         with:
           node-version: 18.17.0
           cache: 'npm'
+
+      # Cache dependencies
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 
       - run: |
           mkdir -p .soroban-example-dapp
