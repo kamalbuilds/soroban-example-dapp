@@ -5,14 +5,13 @@ import { SorobanRpc } from '@stellar/stellar-sdk'
 const rpcUrl = 'https://soroban-testnet.stellar.org'
 
 export const abundance = new Abundance.Client({
-  ...Abundance.networks.testnet,
+  ...Abundance.networks.futurenet,
   rpcUrl: rpcUrl,
   allowHttp: true,
-
 })
 
 export const crowdfund = new Crowdfund.Client({
-  ...Crowdfund.networks.testnet,
+  ...Crowdfund.networks.futurenet,
   rpcUrl: rpcUrl,
   allowHttp: true,
 })
